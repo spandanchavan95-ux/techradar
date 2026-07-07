@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ExternalLink, Building2, MapPin, Loader2 } from 'lucide-react'
+import { ExternalLink, Building2, MapPin, Loader2, BookmarkPlus, Check } from 'lucide-react'
 import { checkAdRequirements, logAdCompleted } from '@/app/actions/ads'
+import { saveJobToTracker } from '@/app/actions/tracker'
 
 interface JobCardProps {
   job: { title: string; company: string; location: string; link: string }
@@ -12,6 +13,10 @@ export default function JobCard({ job }: JobCardProps) {
   const [isRouting, setIsRouting] = useState(false)
   const [showAdModal, setShowAdModal] = useState(false)
   const [countdown, setCountdown] = useState(5)
+  
+  // New state variables for the Tracker integration
+  const [isSaving, setIsSaving] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
 
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -21,35 +26,50 @@ export default function JobCard({ job }: JobCardProps) {
     return () => clearTimeout(timer)
   }, [showAdModal, countdown])
 
+  // Handles the Ad-Gated Routing
   const handleLinkClick = async (e: React.MouseEvent) => {
     e.preventDefault()
     setIsRouting(true)
 
-    // Securely ask the server if this click requires an ad intercept
     const status = await checkAdRequirements()
 
     if (status.requireAd) {
       setIsRouting(false)
       setShowAdModal(true)
     } else {
-      // Free pass - route immediately
       window.open(job.link, '_blank', 'noopener,noreferrer')
       setIsRouting(false)
     }
   }
 
   const handleSkipAd = async () => {
-    await logAdCompleted() // Update server cookies
+    await logAdCompleted() 
     setShowAdModal(false)
-    setCountdown(5) // Reset for next time
+    setCountdown(5) 
     window.open(job.link, '_blank', 'noopener,noreferrer')
+  }
+
+  // Handles saving the job to the backend Supabase table
+  const handleSaveToTracker = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation() // Stops the click from triggering the ad-router
+    
+    setIsSaving(true)
+    const result = await saveJobToTracker(job)
+    
+    if (result.success) {
+      setIsSaved(true)
+    } else {
+      alert("Failed to save job. Ensure you are logged in.")
+    }
+    setIsSaving(false)
   }
 
   return (
     <>
-      <button 
+      <div 
         onClick={handleLinkClick}
-        className="w-full text-left block p-6 border border-slate-800 rounded-xl bg-slate-900/30 hover:bg-slate-900/80 transition-colors group relative"
+        className="block p-6 border border-slate-800 rounded-xl bg-slate-900/30 hover:bg-slate-900/80 transition-colors group relative cursor-pointer"
       >
         <div className="flex justify-between items-start">
           <div>
@@ -67,9 +87,23 @@ export default function JobCard({ job }: JobCardProps) {
              <ExternalLink className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
           )}
         </div>
-      </button>
 
-      {/* The 5-Second Fullscreen Interstitial Ad Modal */}
+        {/* New Action Bar matching the Blueprint UI */}
+        <div className="flex items-center space-x-6 mt-5 pt-4 border-t border-slate-800/50 text-sm font-medium">
+           <button 
+             onClick={handleSaveToTracker} 
+             disabled={isSaved || isSaving} 
+             className="flex items-center text-slate-400 hover:text-emerald-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : 
+               isSaved ? <Check className="w-4 h-4 mr-2 text-emerald-400" /> : 
+               <BookmarkPlus className="w-4 h-4 mr-2" />}
+              {isSaved ? "Saved to Tracker" : "Save to Opportunity Tracker"}
+           </button>
+        </div>
+      </div>
+
+      {/* 5-Second Fullscreen Interstitial Ad Modal */}
       {showAdModal && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-sm p-4">
           <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-2xl">
