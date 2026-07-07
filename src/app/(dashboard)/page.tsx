@@ -3,10 +3,8 @@ import { Terminal, Code2, Rocket, Briefcase } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function Home() {
-  // Initialize the server-side database connection
   const supabase = createClient();
   
-  // Fetch the latest entries directly from the cloud
   const { data: jobs } = await supabase
     .from("jobs")
     .select("*")
