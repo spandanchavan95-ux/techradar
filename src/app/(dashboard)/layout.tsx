@@ -1,46 +1,77 @@
-import { Radar, Briefcase, Terminal, Settings, Zap } from "lucide-react";
-import Link from "next/link";
+import Link from 'next/link'
+import { Radar, Briefcase, Terminal, Settings, Zap } from 'lucide-react'
 
 export default function DashboardLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <>
-      {/* Persistent Sidebar Navigation */}
-      <aside className="w-64 border-r border-slate-800 bg-slate-900/50 hidden md:flex flex-col p-4 sticky top-0 h-screen">
-        <div className="flex items-center space-x-3 mb-10 px-2 mt-4">
-          <Radar className="w-7 h-7 text-emerald-500" />
-          <span className="font-bold text-xl tracking-tight">TechRadar</span>
-        </div>
+    <div className="min-h-screen bg-slate-950 grid grid-cols-[256px_1fr]">
+      
+      {/* CSS Grid Sidebar (Sticky instead of Fixed) */}
+      <aside className="bg-[#0B0F19] border-r border-slate-800 flex flex-col sticky top-0 h-screen z-50">
         
-        <nav className="flex-1 space-y-2">
-          <Link href="/" className="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-medium">
-            <Radar className="w-5 h-5" /> <span>Live Radar</span>
+        {/* App Branding */}
+        <div className="p-6 border-b border-slate-800">
+          <Link href="/" className="flex items-center text-xl font-bold text-slate-100 hover:opacity-80 transition-opacity">
+            <Radar className="w-6 h-6 text-emerald-500 mr-2" />
+            TechRadar
           </Link>
-          <Link href="/tracker" className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
-            <Briefcase className="w-5 h-5" /> <span>Opportunity Tracker</span>
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <Link 
+            href="/" 
+            className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
+          >
+            <Radar className="w-5 h-5 mr-3" />
+            Live Radar
           </Link>
-          <Link href="/copilot" className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
-            <Terminal className="w-5 h-5" /> <span>AI Co-Pilot</span>
+          
+          <Link 
+            href="/tracker" 
+            className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
+          >
+            <Briefcase className="w-5 h-5 mr-3" />
+            Opportunity Tracker
           </Link>
-          <Link href="/settings" className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
-            <Settings className="w-5 h-5" /> <span>Settings & Tags</span>
+
+          <Link 
+            href="/copilot" 
+            className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
+          >
+            <Terminal className="w-5 h-5 mr-3" />
+            AI Co-Pilot
+          </Link>
+
+          <Link 
+            href="/settings" 
+            className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
+          >
+            <Settings className="w-5 h-5 mr-3" />
+            Settings & Tags
           </Link>
         </nav>
 
-        <div className="mt-auto mb-4">
-          <Link href="/premium" className="flex items-center justify-center space-x-2 w-full p-3 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 text-slate-950 font-bold transition-all shadow-lg shadow-emerald-900/20">
-            <Zap className="w-5 h-5 fill-slate-950" /> <span>Premium Hub</span>
+        {/* Premium Hub CTA */}
+        <div className="p-4 border-t border-slate-800">
+          <Link 
+            href="/premium" 
+            className="flex items-center justify-center w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition-colors shadow-lg shadow-emerald-900/20"
+          >
+            <Zap className="w-5 h-5 mr-2" />
+            Premium Hub
           </Link>
         </div>
       </aside>
 
-      {/* Dynamic Center Feed */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Main Content Area - Forces 100% of remaining width */}
+      <main className="w-full min-h-screen overflow-x-hidden">
         {children}
-      </div>
-    </>
-  );
+      </main>
+      
+    </div>
+  )
 }

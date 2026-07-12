@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css"; // Fixed import to use absolute path
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +16,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} antialiased min-h-screen bg-slate-950 text-slate-50 flex`}>
+      {/* REMOVED the 'flex' class that was crushing the layout */}
+      <body className={`${inter.className} antialiased min-h-screen bg-slate-950 text-slate-50`}>
         {children}
       </body>
     </html>
