@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Settings, User, Database, Cpu, Activity, Tag, CheckCircle2 } from 'lucide-react'
+import { Settings, Database, Cpu, Activity, Tag, CheckCircle2 } from 'lucide-react'
+import SettingsForm from './SettingsForm'
 
 export default async function SettingsPage() {
   const supabase = createClient()
@@ -11,7 +12,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('is_premium')
+    .select('*')
     .eq('id', user.id)
     .single()
 
@@ -41,28 +42,14 @@ export default async function SettingsPage() {
         {/* 3-Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
           
-          {/* Column 1: Developer Profile */}
+          {/* Column 1: Developer Profile (Now Fully Functional!) */}
           <div className="space-y-6">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
-                <User className="w-5 h-5 mr-2 text-emerald-500" /> Developer Profile
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-mono text-slate-500 mb-1">Account Email</label>
-                  <input disabled value={user.email} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 cursor-not-allowed" />
-                </div>
-                <div>
-                  <label className="block text-xs font-mono text-slate-500 mb-1">GitHub Profile</label>
-                  <input placeholder="github.com/username" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-emerald-500 outline-none transition-colors" />
-                </div>
-                <div>
-                  <label className="block text-xs font-mono text-slate-500 mb-1">LinkedIn URL</label>
-                  <input placeholder="linkedin.com/in/username" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-emerald-500 outline-none transition-colors" />
-                </div>
-              </div>
-            </div>
+            
+            <SettingsForm 
+              initialGithub={profile?.github_url} 
+              initialLinkedin={profile?.linkedin_url} 
+              userEmail={user.email || ''} 
+            />
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
                <h2 className="text-lg font-semibold text-slate-100 mb-4">Context Vectorization File</h2>
