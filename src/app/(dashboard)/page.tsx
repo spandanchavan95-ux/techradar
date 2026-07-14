@@ -1,14 +1,16 @@
 import JobCard from "@/components/JobCard";
-import { Terminal, Code2, Rocket, Briefcase } from "lucide-react";
+import { Terminal, Code2, Rocket, Briefcase, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function Home() {
   const supabase = createClient();
   
-  // 1. Securely determine if the user is Premium
-  let isPremium = false;
+  // 1. Fetch User and their saved Tags
   const { data: { user } } = await supabase.auth.getUser();
+  const userTags = user?.user_metadata?.target_tags || [];
   
+  // 2. Securely determine Premium Status
+  let isPremium = false;
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -21,19 +23,39 @@ export default async function Home() {
     }
   }
 
-  // 2. Build the dynamic database query
+  // 3. Build the dynamic database query
   let query = supabase
     .from("jobs")
     .select("*")
     .order("created_at", { ascending: false });
 
-  // 3. Enforce the 6-Hour Paywall Delay for Free Users
+  // 4. Enforce the 6-Hour Paywall Delay for Free Users
   if (!isPremium) {
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
     query = query.lt('created_at', sixHoursAgo);
   }
 
   const { data: jobs } = await query;
+  let allJobs = jobs || [];
+
+  // 5. The True Radar: Flag matches instead of deleting non-matches
+  const isTaggingActive = userTags.length > 0;
+  
+  const enrichedJobs = allJobs.map((job) => {
+    let isMatch = false;
+    if (isTaggingActive) {
+      const searchString = `${job.title} ${job.location} ${job.company}`.toLowerCase();
+      isMatch = userTags.some((tag: string) => searchString.includes(tag.toLowerCase()));
+    }
+    return { ...job, isMatch };
+  });
+
+  // 6. Sort so highlighted matches float to the top, followed by the rest chronologically
+  enrichedJobs.sort((a, b) => {
+    if (a.isMatch && !b.isMatch) return -1;
+    if (!a.isMatch && b.isMatch) return 1;
+    return 0; // Keep original chronological order if both are matches or both are not
+  });
 
   return (
     <main className="min-h-screen flex flex-col items-center p-10">
@@ -64,18 +86,28 @@ export default async function Home() {
 
         {/* Live Data Feed */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold mb-4 flex items-center text-slate-100">
-            <Briefcase className="w-5 h-5 mr-2 text-slate-400" /> 
-            Live Opportunities
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold flex items-center text-slate-100">
+              <Briefcase className="w-5 h-5 mr-2 text-slate-400" /> 
+              Live Industry Radar
+            </h2>
+            
+            {/* Visual Indicator that highlighting is active */}
+            {isTaggingActive && (
+              <div className="flex items-center text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                <Sparkles className="w-3 h-3 mr-2" />
+                Highlighting {userTags.length} Tags
+              </div>
+            )}
+          </div>
           
-          {!jobs || jobs.length === 0 ? (
-            <div className="border border-dashed border-slate-800 rounded-xl p-12 text-center text-slate-500">
-              <p>No opportunities found in your access window.</p>
+          {enrichedJobs.length === 0 ? (
+            <div className="border border-dashed border-slate-800 rounded-xl p-12 text-center text-slate-500 bg-slate-900/20">
+              <p className="mb-2">Awaiting data injection from scrapers...</p>
             </div>
           ) : (
-            jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+            enrichedJobs.map((job) => (
+              <JobCard key={job.id} job={job} isMatch={job.isMatch} />
             ))
           )}
         </div>

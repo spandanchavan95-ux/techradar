@@ -1,15 +1,20 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Settings, Database, Cpu, Activity, Tag, CheckCircle2 } from 'lucide-react'
+import { Settings, Database, Cpu, Activity, CheckCircle2 } from 'lucide-react'
 import SettingsForm from './SettingsForm'
+import TaxonomyManager from './TaxonomyManager' // Import is here
 
 export default async function SettingsPage() {
   const supabase = createClient()
 
-  // Securely fetch user and profile data
+  // 1. FIRST: Fetch the user from the database
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // 2. SECOND: Now that we have the user, safely extract their tags
+  const userTags = user.user_metadata?.target_tags || []
+
+  // 3. Fetch their premium status profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
@@ -42,9 +47,8 @@ export default async function SettingsPage() {
         {/* 3-Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
           
-          {/* Column 1: Developer Profile (Now Fully Functional!) */}
+          {/* Column 1: Developer Profile */}
           <div className="space-y-6">
-            
             <SettingsForm 
               initialGithub={profile?.github_url} 
               initialLinkedin={profile?.linkedin_url} 
@@ -67,39 +71,8 @@ export default async function SettingsPage() {
             </div>
           </div>
 
-          {/* Column 2: Global Taxonomy Configuration */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-slate-100 flex items-center">
-                <Tag className="w-5 h-5 mr-2 text-emerald-500" /> Global Taxonomy
-              </h2>
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded font-mono">5 Active Tags</span>
-            </div>
-            
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-medium text-slate-400 mb-3">Target Technologies</h3>
-                <div className="flex flex-wrap gap-2">
-                  {['Python', 'Linux', 'Generative AI', 'React', 'TypeScript'].map((tag) => (
-                    <span key={tag} className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-md text-sm cursor-pointer hover:bg-emerald-500/20 transition-colors">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-slate-400 mb-3">Opportunity Types</h3>
-                <div className="flex flex-wrap gap-2">
-                  {['Internship', 'Free Certificate', 'Remote', 'Hackathon'].map((tag) => (
-                    <span key={tag} className="px-3 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-md text-sm cursor-pointer hover:bg-slate-700 transition-colors">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Column 2: Global Taxonomy Configuration (NOW LIVE) */}
+          <TaxonomyManager initialTags={userTags} />
 
           {/* Column 3: System Ingestion Pipeline */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 space-y-6">
