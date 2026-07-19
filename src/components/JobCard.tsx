@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ExternalLink, BookmarkPlus, Sparkles, Loader2, Check, Clock, ChevronRight, Zap } from 'lucide-react'
 import { saveJobToTracker } from '@/app/actions/tracker'
+import { synthesizeImpact } from '@/app/actions/ai'
 
 interface Job {
   id: string
@@ -11,8 +12,8 @@ interface Job {
   location: string
   link: string
   source?: string
-  created_at?: string // Added timestamp
-  description?: string // Added for summary
+  created_at?: string
+  description?: string
 }
 
 interface JobCardProps {
@@ -38,13 +39,12 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   
-  // NEW: State for the in-app Modal and AI Analysis
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [aiImpact, setAiImpact] = useState('')
 
   const handleCardClick = () => {
-    setIsModalOpen(true) // Opens the in-app reader instead of a new tab
+    setIsModalOpen(true)
   }
 
   const handleSave = async (e: React.MouseEvent) => {
@@ -57,14 +57,19 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
     setIsSaving(false)
   }
 
-  const handleAnalyzeImpact = (e: React.MouseEvent) => {
+  const handleAnalyzeImpact = async (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsAnalyzing(true)
-    // We will connect this to Groq Llama 3.1 in the next step!
-    setTimeout(() => {
-      setAiImpact("AI ANALYSIS: This technology shift heavily impacts modern web development. Based on your saved context, you should focus on learning how this integrates with your existing Python backend architecture to maintain a competitive edge.")
-      setIsAnalyzing(false)
-    }, 2000)
+    
+    const result = await synthesizeImpact(job.title, displaySummary)
+    
+    if (result.success) {
+      setAiImpact(result.analysis || '')
+    } else {
+      setAiImpact(`SYSTEM ERROR: ${result.error}`)
+    }
+    
+    setIsAnalyzing(false)
   }
 
   const timeAgo = getRelativeTime(job.created_at)
@@ -72,7 +77,7 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
 
   return (
     <>
-      {/* 1. THE RADAR CARD (Clicking this opens the modal) */}
+      {/* 1. THE RADAR CARD */}
       <div 
         onClick={handleCardClick}
         className={`p-6 bg-[#0B0F19]/60 backdrop-blur-sm rounded-xl transition-all duration-300 border relative overflow-hidden group cursor-pointer ${
@@ -151,9 +156,8 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
               </button>
             </div>
 
-            {/* Modal Body (Scrollable) */}
+            {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
-              
               {/* Summary Section */}
               <div>
                 <h3 className="text-sm font-bold text-slate-400 mb-2 uppercase tracking-wider">Quick Summary</h3>
@@ -189,7 +193,7 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
               </div>
             </div>
 
-            {/* Modal Footer (Action Buttons) */}
+            {/* Modal Footer */}
             <div className="p-6 border-t border-slate-800 bg-slate-900/30 flex justify-between items-center gap-4">
               <button onClick={handleSave} disabled={isSaving || isSaved} className={`flex items-center transition-colors font-medium text-sm disabled:opacity-50 ${isSaved ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'}`}>
                 {isSaved ? <Check className="w-4 h-4 mr-2" /> : <BookmarkPlus className="w-4 h-4 mr-2" />}
