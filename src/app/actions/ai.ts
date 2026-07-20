@@ -6,17 +6,18 @@ import Groq from 'groq-sdk'
 // Initialize the Groq client securely on the backend
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+// ==========================================
+// FUNCTION 1: LIVE RADAR NEWS SYNTHESIS
+// ==========================================
 export async function synthesizeImpact(articleTitle: string, articleSummary: string) {
   const supabase = createClient()
   
-  // 1. Verify User Authenticity
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
-  // 2. Extract Context Vector (Resume) - NO LONGER BLOCKS IF MISSING
   const resumeContext = user.user_metadata?.resume_context || ''
 
-  // 3. Security: Enforce API Quotas against the ledger
+  // Security: Enforce API Quotas against the ledger
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const { count: aiUsageCount } = await supabase
     .from('ai_usage_logs')
@@ -30,14 +31,12 @@ export async function synthesizeImpact(articleTitle: string, articleSummary: str
     .eq('id', user.id)
     .single()
 
-  const isPremium = profile?.is_premium || false
-  const dailyLimit = isPremium ? 100 : 15
+  const dailyLimit = profile?.is_premium ? 100 : 15
 
   if (aiUsageCount !== null && aiUsageCount >= dailyLimit) {
     return { success: false, error: 'Daily AI limit reached. Please upgrade to Premium.' }
   }
 
-  // 4. The Upgraded Macro/Micro Super-Prompt
   const systemPrompt = `You are a visionary tech analyst and career strategist. 
 Analyze the provided tech industry update (news, job trend, or technology change) and output a punchy, 2-part analysis:
 
@@ -51,15 +50,9 @@ ${resumeContext
 
 Keep the output highly technical, concise, and format it cleanly using the bold headers above. Do not use markdown outside of the headers.`
 
-  const userPrompt = `
-INDUSTRY UPDATE:
-Title: ${articleTitle}
-Summary: ${articleSummary}
-
-${resumeContext ? `USER BACKGROUND:\n${resumeContext}` : ''}`
+  const userPrompt = `INDUSTRY UPDATE:\nTitle: ${articleTitle}\nSummary: ${articleSummary}\n\n${resumeContext ? `USER BACKGROUND:\n${resumeContext}` : ''}`
 
   try {
-    // 5. Fire the Groq API Request
     const completion = await groq.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -71,11 +64,79 @@ ${resumeContext ? `USER BACKGROUND:\n${resumeContext}` : ''}`
     })
 
     const analysis = completion.choices[0]?.message?.content || 'Analysis failed to generate.'
-    
-    // 6. Log the usage to enforce the backend paywall limit
     await supabase.from('ai_usage_logs').insert({ user_id: user.id })
-    
     return { success: true, analysis }
+  } catch (error: any) {
+    console.error("Groq Pipeline Error:", error)
+    return { success: false, error: 'System failed to connect to the AI Engine.' }
+  }
+}
+
+// ==========================================
+// FUNCTION 2: TRACKER ACTION PLAN (UPDATED)
+// ==========================================
+export async function generateActionPlan(jobTitle: string, company: string, location: string) {
+  const supabase = createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Unauthorized' }
+
+  // We extract the resume, but we NO LONGER throw an error if it is missing
+  const resumeContext = user.user_metadata?.resume_context || ''
+
+  // Security: Enforce API Quotas against the ledger
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { count: aiUsageCount } = await supabase
+    .from('ai_usage_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', twentyFourHoursAgo)
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_premium')
+    .eq('id', user.id)
+    .single()
+
+  const dailyLimit = profile?.is_premium ? 100 : 15
+
+  if (aiUsageCount !== null && aiUsageCount >= dailyLimit) {
+    return { success: false, error: 'Daily AI limit reached. Please upgrade to Premium.' }
+  }
+
+  const systemPrompt = `You are a ruthless, highly technical career strategist. 
+The user is targeting an opportunity and needs a tactical outreach strategy. 
+Write a highly targeted, cold outreach message (for LinkedIn or Email) they can send to a recruiter or hiring manager at the target company. 
+Rules:
+1. Do not use generic filler (e.g., "I hope this email finds you well").
+2. Keep it under 150 words.
+3. Output ONLY the email/message text. No conversational filler from the AI.`
+
+  // Dynamically adapt the prompt based on whether they provided a resume
+  const userPrompt = `
+TARGET OPPORTUNITY:
+Role/Item: ${jobTitle}
+Company: ${company}
+Location/Type: ${location}
+
+${resumeContext 
+  ? `USER BACKGROUND:\n${resumeContext}\nConnect their specific tech stack to the target opportunity.` 
+  : `The user has not provided a resume context. Write a clean, professional, generic outreach email asking for an initial chat to learn more about the role.`}`
+
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      model: 'llama-3.1-8b-instant', 
+      temperature: 0.6,
+      max_tokens: 300,
+    })
+
+    const plan = completion.choices[0]?.message?.content || 'Action Plan failed to generate.'
+    await supabase.from('ai_usage_logs').insert({ user_id: user.id })
+    return { success: true, plan }
   } catch (error: any) {
     console.error("Groq Pipeline Error:", error)
     return { success: false, error: 'System failed to connect to the AI Engine.' }
