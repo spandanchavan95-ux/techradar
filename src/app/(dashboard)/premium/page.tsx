@@ -1,145 +1,199 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Check, X, Zap, ShieldCheck, Calendar } from 'lucide-react'
-import CheckoutButton from './CheckoutButton'
+import { revalidatePath } from 'next/cache'
+import { 
+  Shield, Zap, Check, Crosshair, 
+  Sparkles, Clock, ShieldCheck, Calendar, X 
+} from 'lucide-react'
 
-export default async function PremiumHub() {
+export default async function PremiumHubPage() {
   const supabase = createClient()
   
-  // 1. Get the user
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // 2. Check their subscription status
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('is_premium')
     .eq('id', user.id)
     .single()
 
-  const isPremium = profile?.is_premium
+  const isPremium = profile?.is_premium || false
 
-  // 3. Calculate the renewal date (30 days from purchase)
-  const subDate = new Date(profile?.subscription_date || Date.now())
-  subDate.setDate(subDate.getDate() + 30)
-  const renewalDate = subDate.toLocaleDateString('en-IN', { 
-    month: 'short', day: 'numeric', year: 'numeric' 
+  const upgradeToPremium = async () => {
+    'use server'
+    const supabaseServer = createClient()
+    await supabaseServer.from('profiles').update({ is_premium: true }).eq('id', user.id)
+    revalidatePath('/premium')
+  }
+
+  const billingDate = new Date()
+  billingDate.setMonth(billingDate.getMonth() + 1)
+  const formattedDate = billingDate.toLocaleDateString('en-GB', { 
+    day: 'numeric', month: 'short', year: 'numeric' 
   })
 
   return (
-    <main className="p-10 flex flex-col items-center min-h-[80vh]">
-      <div className="max-w-5xl w-full space-y-8">
-        
-        {/* Dynamic Hero Section */}
-        {isPremium ? (
-          // VIP ACTIVE STATE
-          <div className="bg-slate-900 border-2 border-emerald-500 rounded-2xl p-8 relative overflow-hidden shadow-2xl shadow-emerald-900/20 flex flex-col md:flex-row gap-8 items-center justify-between">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            
-            <div className="z-10 flex flex-col">
-              <div className="flex items-center space-x-3 mb-4">
-                <ShieldCheck className="w-10 h-10 text-emerald-500" />
-                <h1 className="text-3xl font-bold text-slate-100">Premium Active</h1>
-              </div>
-              <p className="text-slate-400 max-w-md mb-6">
-                Your workspace is completely unlocked. You have zero-delay data feeds, ad-free routing, and full AI Co-Pilot access.
-              </p>
-              
-              <div className="flex items-center space-x-2 text-emerald-400 font-mono text-sm bg-emerald-500/10 px-4 py-2 rounded-lg border border-emerald-500/20 w-fit">
-                <Calendar className="w-4 h-4 mr-2" />
-                Next Billing Cycle: {renewalDate}
-              </div>
-            </div>
-
-            <div className="z-10 bg-slate-950 border border-slate-800 p-6 rounded-xl text-center min-w-[250px]">
-               <span className="block text-slate-400 text-sm mb-2">Current Plan</span>
-               <span className="block text-2xl font-bold text-slate-100 mb-4">Premium Pro</span>
-               <button disabled className="w-full py-2 bg-slate-800 text-slate-500 font-bold rounded-lg cursor-not-allowed">
-                 Active Subscription
-               </button>
-            </div>
-          </div>
-        ) : (
-          // SALES PITCH STATE (Free Users)
-          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-8 relative overflow-hidden shadow-2xl flex flex-col md:flex-row gap-8 justify-between">
-            <div className="flex-1 z-10 flex flex-col justify-center">
-              <div className="inline-block px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-xs uppercase tracking-wider rounded-full mb-4 w-max">
-                Premium Pro
-              </div>
-              <h1 className="text-4xl font-bold text-slate-100 mb-4">Gain An Unfair Advantage.</h1>
-              <p className="text-slate-400 mb-8 max-w-md">
-                Unlock an ad-free workspace, zero-delay data feeds, automated tracking, and your personal AI outreach writer.
-              </p>
-              
-              <div className="flex items-end space-x-2 mb-2">
-                <span className="text-5xl font-bold text-slate-100">₹50</span>
-                <span className="text-slate-500 mb-1">/ month</span>
-              </div>
-              <p className="text-sm text-slate-500 mb-6">Cancel anytime. Billed monthly.</p>
-
-              <CheckoutButton />
-            </div>
-
-            <div className="w-full md:w-96 bg-slate-950/80 border border-slate-800 rounded-xl p-6 z-10 relative">
-               <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl"></div>
-               <h3 className="text-slate-300 font-mono text-sm uppercase tracking-wider mb-6">What you unlock instantly</h3>
-               <ul className="space-y-4">
-                {['100% Ad-Free Experience', 'Instant Access (Zero-Delay)', 'Automated Kanban Tracking', 'Automated Saved Search Alerts', 'AI Co-Pilot (15 Drafts/Day)'].map((feature, i) => (
-                  <li key={i} className="flex items-center text-slate-300 text-sm">
-                    <Check className="w-4 h-4 text-emerald-500 mr-3 flex-shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {/* Bottom Section: Comparison Table */}
-        <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-900">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/50">
-                <th className="p-5 text-slate-300 font-semibold w-1/3">Clear Product Value</th>
-                <th className="p-5 text-slate-300 font-semibold text-center border-l border-slate-800 w-1/3">Free Core</th>
-                <th className="p-5 text-emerald-400 font-semibold text-center border-l border-slate-800 w-1/3">
-                  <div className="flex flex-col items-center">
-                    <span>Premium Pro</span>
-                    <span className="text-xs text-emerald-500/60 font-normal mt-1">₹50 / month</span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800 text-sm">
-              <tr className="hover:bg-slate-950/30 transition-colors">
-                <td className="p-5 text-slate-300">App Launch Experience</td>
-                <td className="p-5 text-slate-400 text-center border-l border-slate-800">5-Second Ad</td>
-                <td className="p-5 text-slate-300 text-center border-l border-slate-800">Ad-Free</td>
-              </tr>
-              <tr className="hover:bg-slate-950/30 transition-colors">
-                <td className="p-5 text-slate-300">Data Access Latency</td>
-                <td className="p-5 text-slate-400 text-center border-l border-slate-800">6-Hour Delay</td>
-                <td className="p-5 text-amber-400 text-center border-l border-slate-800 flex items-center justify-center">
-                  <Zap className="w-4 h-4 mr-1.5 fill-amber-400" /> Instant Real-Time
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-950/30 transition-colors">
-                <td className="p-5 text-slate-300">Opportunity Tracker</td>
-                <td className="p-5 text-slate-400 text-center border-l border-slate-800">Manual Logging</td>
-                <td className="p-5 text-slate-300 text-center border-l border-slate-800">Automated Status Sync</td>
-              </tr>
-              <tr className="hover:bg-slate-950/30 transition-colors">
-                <td className="p-5 text-slate-300">AI Outreach Assistant</td>
-                <td className="p-5 text-red-400 text-center border-l border-slate-800 flex items-center justify-center">
-                  <X className="w-4 h-4 mr-1.5" /> Locked
-                </td>
-                <td className="p-5 text-slate-300 text-center border-l border-slate-800">15 Drafts / Day</td>
-              </tr>
-            </tbody>
-          </table>
+    <main className="p-4 md:p-10 min-h-[calc(100vh-4rem)] flex flex-col items-center">
+      
+      {!isPremium && (
+        <div className="text-center max-w-2xl mb-12">
+          <h1 className="text-4xl font-bold text-slate-100 mb-4 flex items-center justify-center">
+            <Zap className="w-8 h-8 mr-3 text-emerald-500" />
+            The Unfair Advantage
+          </h1>
+          <p className="text-slate-400 text-lg">
+            Stop competing with thousands of developers in the slow lane. Unlock zero-delay data feeds and full AI access.
+          </p>
         </div>
+      )}
 
-      </div>
+      {isPremium ? (
+        <div className="w-full max-w-5xl space-y-8 animate-in fade-in duration-500">
+          
+          <div className="border border-emerald-500/50 rounded-2xl p-8 bg-[#0B0F19] relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+             <div className="space-y-4 max-w-xl">
+               <h2 className="text-3xl font-bold text-slate-100 flex items-center">
+                 <ShieldCheck className="w-8 h-8 text-emerald-500 mr-3" />
+                 Premium Active
+               </h2>
+               <p className="text-slate-400 text-sm leading-relaxed">
+                 Your workspace is completely unlocked. You have zero-delay data feeds, ad-free routing, and full AI Co-Pilot access.
+               </p>
+               <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg text-sm font-mono font-bold mt-2">
+                 <Calendar className="w-4 h-4 mr-2" />
+                 Next Billing Cycle: {formattedDate}
+               </div>
+             </div>
+
+             <div className="bg-[#050810] border border-slate-800 rounded-xl p-6 min-w-[240px] text-center flex flex-col items-center">
+               <span className="text-slate-500 text-sm mb-1">Current Plan</span>
+               <span className="text-2xl font-bold text-slate-100 mb-4">Premium Pro</span>
+               <div className="bg-slate-800/50 text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-sm font-bold w-full">
+                 Active Subscription
+               </div>
+             </div>
+          </div>
+
+          <div className="border border-slate-800 rounded-2xl bg-[#0B0F19] overflow-hidden shadow-xl text-sm md:text-base">
+            <div className="grid grid-cols-3 border-b border-slate-800 bg-slate-900/50 p-6">
+               <div className="font-bold text-slate-100">Clear Product Value</div>
+               <div className="font-bold text-slate-100 text-center">Free Core</div>
+               <div className="font-bold text-emerald-400 text-center flex flex-col items-center">
+                  Premium Pro
+                  <span className="text-emerald-500/50 text-xs font-normal mt-1">₹50 / month</span>
+               </div>
+            </div>
+            
+            <div className="grid grid-cols-3 border-b border-slate-800 p-6 items-center">
+               <div className="text-slate-300">App Launch Experience</div>
+               <div className="text-slate-500 text-center">5-Second Ad</div>
+               <div className="text-slate-200 text-center">Ad-Free</div>
+            </div>
+
+            <div className="grid grid-cols-3 border-b border-slate-800 p-6 items-center">
+               <div className="text-slate-300">Data Access Latency</div>
+               <div className="text-slate-500 text-center">6-Hour Delay</div>
+               <div className="text-amber-400 text-center flex justify-center items-center font-medium">
+                 <Zap className="w-4 h-4 mr-1.5 fill-amber-400"/> Instant Real-Time
+               </div>
+            </div>
+            
+            <div className="grid grid-cols-3 border-b border-slate-800 p-6 items-center">
+               <div className="text-slate-300">Opportunity Tracker</div>
+               <div className="text-slate-500 text-center">Manual Logging</div>
+               <div className="text-slate-200 text-center">Automated Status Sync</div>
+            </div>
+            
+            <div className="grid grid-cols-3 p-6 items-center">
+               <div className="text-slate-300">AI Outreach Assistant</div>
+               <div className="text-rose-400 text-center flex justify-center items-center">
+                 <X className="w-4 h-4 mr-1.5"/> Locked
+               </div>
+               <div className="text-slate-200 text-center">15 Drafts / Day</div>
+            </div>
+          </div>
+          
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl w-full animate-in fade-in duration-500">
+          
+          <div className="bg-[#0B0F19] border border-slate-800 rounded-2xl p-8 flex flex-col relative">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-slate-300">Standard License</h2>
+              <div className="mt-2 flex items-baseline text-4xl font-extrabold text-slate-100">
+                ₹0<span className="text-lg text-slate-500 font-medium ml-1">/mo</span>
+              </div>
+            </div>
+            
+            <ul className="space-y-4 flex-1 mb-8">
+              <li className="flex items-start">
+                <Clock className="w-5 h-5 text-slate-500 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-400">6-Hour Delayed Radar Feed</span>
+              </li>
+              <li className="flex items-start">
+                <Shield className="w-5 h-5 text-slate-500 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-400">5-Second App Launch Ad</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 text-emerald-500/50 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-400">Manual Opportunity Logging</span>
+              </li>
+              <li className="flex items-start">
+                <X className="w-5 h-5 text-rose-500/50 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-400">AI Assistant Locked</span>
+              </li>
+            </ul>
+
+            <button disabled className="w-full py-3 px-4 bg-slate-800/50 text-slate-500 border border-slate-700 rounded-lg font-bold cursor-not-allowed">
+              Downgrade to Standard
+            </button>
+          </div>
+
+          <div className="bg-[#0B0F19] border-2 border-emerald-500/50 rounded-2xl p-8 flex flex-col relative overflow-hidden shadow-[0_0_40px_rgba(16,185,129,0.05)]">
+            
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="mb-6 z-10">
+              <h2 className="text-xl font-bold text-emerald-400">Premium Pro</h2>
+              <div className="mt-2 flex items-baseline text-4xl font-extrabold text-slate-100">
+                ₹50<span className="text-lg text-slate-500 font-medium ml-1">/mo</span>
+              </div>
+            </div>
+            
+            <ul className="space-y-4 flex-1 mb-8 z-10">
+              <li className="flex items-start">
+                <Zap className="w-5 h-5 text-emerald-400 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-200 font-medium">Instant Real-Time Data Feed</span>
+              </li>
+              <li className="flex items-start">
+                <Sparkles className="w-5 h-5 text-emerald-400 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-200">Ad-Free App Experience</span>
+              </li>
+              <li className="flex items-start">
+                <Crosshair className="w-5 h-5 text-emerald-400 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-200">Automated Status Sync</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 text-emerald-400 mr-3 shrink-0 mt-0.5" />
+                <span className="text-slate-200">15 AI Outreach Drafts / Day</span>
+              </li>
+            </ul>
+
+            <form action={upgradeToPremium} className="z-10">
+              <button 
+                type="submit"
+                className="w-full py-3 px-4 rounded-lg font-bold transition-all bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg hover:shadow-emerald-500/25"
+              >
+                Upgrade to Premium
+              </button>
+            </form>
+            
+          </div>
+
+        </div>
+      )}
+
     </main>
   )
 }
