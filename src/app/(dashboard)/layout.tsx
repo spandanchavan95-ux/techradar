@@ -1,11 +1,29 @@
 import Link from 'next/link'
-import { Radar, Briefcase, Terminal, Settings, Zap } from 'lucide-react'
+import { Radar, Briefcase, Settings, Zap } from 'lucide-react'
+import { createClient } from '@/utils/supabase/server'
+import AdGateway from '@/components/AdGateway'
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const supabase = createClient()
+  
+  // 1. Authenticate the User
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  // 2. Securely check Premium Status
+  let isPremium = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_premium')
+      .eq('id', user.id)
+      .single()
+    isPremium = profile?.is_premium || false
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 grid grid-cols-[256px_1fr]">
       
@@ -58,9 +76,11 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content Area - Forces 100% of remaining width */}
+      {/* Main Content Area - Wrapped in AdGateway */}
       <main className="w-full min-h-screen overflow-x-hidden">
-        {children}
+        <AdGateway isPremium={isPremium}>
+          {children}
+        </AdGateway>
       </main>
       
     </div>

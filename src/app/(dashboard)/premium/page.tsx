@@ -133,15 +133,15 @@ export default async function PremiumHubPage() {
               </li>
               <li className="flex items-start">
                 <Shield className="w-5 h-5 text-slate-500 mr-3 shrink-0 mt-0.5" />
-                <span className="text-slate-400">5-Second App Launch Ad</span>
+                <span className="text-slate-400">Standard Industry Tag Filtering</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 text-emerald-500/50 mr-3 shrink-0 mt-0.5" />
-                <span className="text-slate-400">Manual Opportunity Logging</span>
+                <span className="text-slate-400">5 Execution Pipeline Slots</span>
               </li>
               <li className="flex items-start">
                 <X className="w-5 h-5 text-rose-500/50 mr-3 shrink-0 mt-0.5" />
-                <span className="text-slate-400">AI Assistant Locked</span>
+                <span className="text-slate-400">AI Outreach Assistant Locked</span>
               </li>
             </ul>
 

@@ -71,9 +71,8 @@ Keep the output highly technical, concise, and format it cleanly using the bold 
     return { success: false, error: 'System failed to connect to the AI Engine.' }
   }
 }
-
 // ==========================================
-// FUNCTION 2: TRACKER ACTION PLAN (UPDATED)
+// FUNCTION 2: TRACKER ACTION PLAN (THE "DRAFTS")
 // ==========================================
 export async function generateActionPlan(jobTitle: string, company: string, location: string) {
   const supabase = createClient()
@@ -81,10 +80,23 @@ export async function generateActionPlan(jobTitle: string, company: string, loca
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
-  // We extract the resume, but we NO LONGER throw an error if it is missing
   const resumeContext = user.user_metadata?.resume_context || ''
 
-  // Security: Enforce API Quotas against the ledger
+  // 1. Fetch Premium Status
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_premium')
+    .eq('id', user.id)
+    .single()
+
+  const isPremium = profile?.is_premium || false
+
+  // 2. BLUEPRINT RULE: Lock AI completely for Free Core users
+  if (!isPremium) {
+    return { success: false, error: 'AI Outreach Assistant is locked on the Free Core tier. Upgrade to Premium Pro to unlock.' }
+  }
+
+  // 3. BLUEPRINT RULE: Cap Premium users at 15 Drafts / Day
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const { count: aiUsageCount } = await supabase
     .from('ai_usage_logs')
@@ -92,16 +104,8 @@ export async function generateActionPlan(jobTitle: string, company: string, loca
     .eq('user_id', user.id)
     .gte('created_at', twentyFourHoursAgo)
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_premium')
-    .eq('id', user.id)
-    .single()
-
-  const dailyLimit = profile?.is_premium ? 100 : 15
-
-  if (aiUsageCount !== null && aiUsageCount >= dailyLimit) {
-    return { success: false, error: 'Daily AI limit reached. Please upgrade to Premium.' }
+  if (aiUsageCount !== null && aiUsageCount >= 15) {
+    return { success: false, error: 'Maximum daily limit of 15 AI drafts reached. Resets in 24 hours.' }
   }
 
   const systemPrompt = `You are a ruthless, highly technical career strategist. 
@@ -112,7 +116,6 @@ Rules:
 2. Keep it under 150 words.
 3. Output ONLY the email/message text. No conversational filler from the AI.`
 
-  // Dynamically adapt the prompt based on whether they provided a resume
   const userPrompt = `
 TARGET OPPORTUNITY:
 Role/Item: ${jobTitle}
@@ -135,7 +138,10 @@ ${resumeContext
     })
 
     const plan = completion.choices[0]?.message?.content || 'Action Plan failed to generate.'
+    
+    // Log the usage to track the 15/day limit
     await supabase.from('ai_usage_logs').insert({ user_id: user.id })
+    
     return { success: true, plan }
   } catch (error: any) {
     console.error("Groq Pipeline Error:", error)

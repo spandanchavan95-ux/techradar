@@ -1,61 +1,62 @@
-import JobCard from "@/components/JobCard";
-import { Terminal, Code2, Rocket, Briefcase, Sparkles } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
+import JobCard from "@/components/JobCard"
+import { Terminal, Code2, Rocket, Briefcase, Sparkles } from "lucide-react"
+import { createClient } from "@/utils/supabase/server"
 
 export default async function Home() {
-  const supabase = createClient();
+  const supabase = createClient()
   
   // 1. Fetch User and their saved Tags
-  const { data: { user } } = await supabase.auth.getUser();
-  const userTags = user?.user_metadata?.target_tags || [];
+  const { data: { user } } = await supabase.auth.getUser()
+  const userTags = user?.user_metadata?.target_tags || []
   
   // 2. Securely determine Premium Status
-  let isPremium = false;
+  let isPremium = false
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_premium')
       .eq('id', user.id)
-      .single();
+      .single()
       
     if (profile?.is_premium) {
-      isPremium = true;
+      isPremium = true
     }
   }
 
-  // 3. Build the dynamic database query
+  // 3. Build the dynamic database query targeting the 'items' table
   let query = supabase
-    .from("jobs")
+    .from("items")
     .select("*")
-    .order("created_at", { ascending: false });
+    .eq('is_active', true)
+    .order("created_at", { ascending: false })
 
   // 4. Enforce the 6-Hour Paywall Delay for Free Users
   if (!isPremium) {
-    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-    query = query.lt('created_at', sixHoursAgo);
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    query = query.lte('created_at', sixHoursAgo)
   }
 
-  const { data: jobs } = await query;
-  let allJobs = jobs || [];
+  const { data: items } = await query
+  let allItems = items || []
 
-  // 5. The True Radar: Flag matches instead of deleting non-matches
-  const isTaggingActive = userTags.length > 0;
+  // 5. The True Radar: Flag matches against the correct schema columns
+  const isTaggingActive = userTags.length > 0
   
-  const enrichedJobs = allJobs.map((job) => {
-    let isMatch = false;
+  const enrichedItems = allItems.map((item) => {
+    let isMatch = false
     if (isTaggingActive) {
-      const searchString = `${job.title} ${job.location} ${job.company}`.toLowerCase();
-      isMatch = userTags.some((tag: string) => searchString.includes(tag.toLowerCase()));
+      const searchString = `${item.headline} ${item.summary} ${item.source_platform}`.toLowerCase()
+      isMatch = userTags.some((tag: string) => searchString.includes(tag.toLowerCase()))
     }
-    return { ...job, isMatch };
-  });
+    return { ...item, isMatch }
+  })
 
-  // 6. Sort so highlighted matches float to the top, followed by the rest chronologically
-  enrichedJobs.sort((a, b) => {
-    if (a.isMatch && !b.isMatch) return -1;
-    if (!a.isMatch && b.isMatch) return 1;
-    return 0; // Keep original chronological order if both are matches or both are not
-  });
+  // 6. Sort so highlighted matches float to the top
+  enrichedItems.sort((a, b) => {
+    if (a.isMatch && !b.isMatch) return -1
+    if (!a.isMatch && b.isMatch) return 1
+    return 0
+  })
 
   return (
     <main className="min-h-screen flex flex-col items-center p-10">
@@ -92,7 +93,6 @@ export default async function Home() {
               Live Industry Radar
             </h2>
             
-            {/* Visual Indicator that highlighting is active */}
             {isTaggingActive && (
               <div className="flex items-center text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                 <Sparkles className="w-3 h-3 mr-2" />
@@ -101,18 +101,18 @@ export default async function Home() {
             )}
           </div>
           
-          {enrichedJobs.length === 0 ? (
+          {enrichedItems.length === 0 ? (
             <div className="border border-dashed border-slate-800 rounded-xl p-12 text-center text-slate-500 bg-slate-900/20">
               <p className="mb-2">Awaiting data injection from scrapers...</p>
             </div>
           ) : (
-            enrichedJobs.map((job) => (
-              <JobCard key={job.id} job={job} isMatch={job.isMatch} />
+            enrichedItems.map((item) => (
+              <JobCard key={item.id} job={item} isMatch={item.isMatch} />
             ))
           )}
         </div>
         
       </div>
     </main>
-  );
+  )
 }
