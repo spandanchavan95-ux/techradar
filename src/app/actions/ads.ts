@@ -1,48 +1,51 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { createClient } from '@/utils/supabase/server'
 
-export async function checkAdRequirements() {
-  const supabase = createClient()
-  
-  // 1. Immediately bypass ads for Premium users
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_premium')
-      .eq('id', user.id)
-      .single()
-      
-    if (profile?.is_premium) {
-      return { requireAd: false } // VIP Pass
-    }
-  }
+// Initial grace period: 90 seconds
+const GRACE_PERIOD_MS = 90 * 1000
+// Cooldown between ads: 7 minutes
+const COOLDOWN_MS = 7 * 60 * 1000
+// Max ads per session
+const MAX_ADS = 5
 
-  // 2. Standard Ad-Gating Logic for Free Users
+export async function checkAdEligibility() {
   const cookieStore = cookies()
-  const initTime = parseInt(cookieStore.get('app_init_time')?.value || '0')
-  const lastAdTime = parseInt(cookieStore.get('last_ad_time')?.value || '0')
-  const adCount = parseInt(cookieStore.get('session_ad_count')?.value || '0')
-  
   const now = Date.now()
-  
-  const gracePeriodOver = (now - initTime) > 90000 // 90 seconds
-  const cooldownOver = (now - lastAdTime) > 420000 // 7 minutes
-  const underLimit = adCount < 5
 
-  if (gracePeriodOver && cooldownOver && underLimit) {
-    return { requireAd: true }
+  // 1. Check App Initialization Time (Grace Period)
+  let appInitTime = cookieStore.get('appInitTime')?.value
+  if (!appInitTime) {
+    // First time launching app this session
+    cookieStore.set('appInitTime', now.toString(), { httpOnly: true, secure: true })
+    return { showAd: false, reason: 'grace_period_started' }
   }
-  
-  return { requireAd: false }
+
+  if (now - parseInt(appInitTime) < GRACE_PERIOD_MS) {
+    return { showAd: false, reason: 'grace_period_active' }
+  }
+
+  // 2. Check Session Ad Count
+  let sessionAdCount = parseInt(cookieStore.get('sessionAdCount')?.value || '0')
+  if (sessionAdCount >= MAX_ADS) {
+    return { showAd: false, reason: 'ad_cap_reached' }
+  }
+
+  // 3. Check 7-Minute Cooldown
+  let lastAdShownTime = cookieStore.get('lastAdShownTime')?.value
+  if (lastAdShownTime && (now - parseInt(lastAdShownTime) < COOLDOWN_MS)) {
+    return { showAd: false, reason: 'cooldown_active' }
+  }
+
+  // If all checks pass, show the ad
+  return { showAd: true }
 }
 
-export async function logAdCompleted() {
+export async function logAdImpression() {
   const cookieStore = cookies()
-  const adCount = parseInt(cookieStore.get('session_ad_count')?.value || '0')
+  let sessionAdCount = parseInt(cookieStore.get('sessionAdCount')?.value || '0')
   
-  cookieStore.set('last_ad_time', Date.now().toString(), { httpOnly: true, secure: true, sameSite: 'lax' })
-  cookieStore.set('session_ad_count', (adCount + 1).toString(), { httpOnly: true, secure: true, sameSite: 'lax' })
+  // Increment count and reset cooldown timer
+  cookieStore.set('sessionAdCount', (sessionAdCount + 1).toString(), { httpOnly: true, secure: true })
+  cookieStore.set('lastAdShownTime', Date.now().toString(), { httpOnly: true, secure: true })
 }
