@@ -1,6 +1,6 @@
+import RazorpayButton from '@/components/RazorpayButton'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import { 
   Shield, Zap, Check, Crosshair, 
   Sparkles, Clock, ShieldCheck, Calendar, X 
@@ -20,13 +20,7 @@ export default async function PremiumHubPage() {
 
   const isPremium = profile?.is_premium || false
 
-  const upgradeToPremium = async () => {
-    'use server'
-    const supabaseServer = createClient()
-    await supabaseServer.from('profiles').update({ is_premium: true }).eq('id', user.id)
-    revalidatePath('/premium')
-  }
-
+  // Set next billing date text
   const billingDate = new Date()
   billingDate.setMonth(billingDate.getMonth() + 1)
   const formattedDate = billingDate.toLocaleDateString('en-GB', { 
@@ -180,14 +174,9 @@ export default async function PremiumHubPage() {
               </li>
             </ul>
 
-            <form action={upgradeToPremium} className="z-10">
-              <button 
-                type="submit"
-                className="w-full py-3 px-4 rounded-lg font-bold transition-all bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg hover:shadow-emerald-500/25"
-              >
-                Upgrade to Premium
-              </button>
-            </form>
+            <div className="z-10">
+              <RazorpayButton />
+            </div>
             
           </div>
 
