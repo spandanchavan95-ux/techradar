@@ -4,24 +4,29 @@ import { useState } from 'react'
 import { ExternalLink, BookmarkPlus, Sparkles, Loader2, Check, Clock, ChevronRight, Zap } from 'lucide-react'
 import { saveJobToTracker } from '@/app/actions/tracker'
 import { synthesizeImpact } from '@/app/actions/ai'
+import AdInterceptor from '@/components/AdInterceptor'
 
+// 1. Updated Interface to accept the Python Scraper's column names
 interface Job {
   id: string
-  title: string
-  company: string
-  location: string
-  link: string
-  source?: string
+  title?: string
+  headline?: string
+  company?: string
+  source_platform?: string
+  location?: string
+  link?: string
+  raw_url?: string
   created_at?: string
   description?: string
+  summary?: string
 }
 
 interface JobCardProps {
   job: Job
   isMatch?: boolean
+  isPremium?: boolean
 }
 
-// Helper function to format time (e.g., "2 hours ago")
 function getRelativeTime(dateString?: string) {
   if (!dateString) return 'Just now'
   const date = new Date(dateString)
@@ -35,13 +40,21 @@ function getRelativeTime(dateString?: string) {
   return `${Math.floor(diffInSeconds / 86400)}d ago`
 }
 
-export default function JobCard({ job, isMatch = false }: JobCardProps) {
+export default function JobCard({ job, isMatch = false, isPremium = false }: JobCardProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [aiImpact, setAiImpact] = useState('')
+
+  // 2. Safely map the variables, falling back to the scraper's data structure
+  const displayTitle = job.title || job.headline || 'Incoming Radar Alert'
+  const displayCompany = job.company || job.source_platform?.replace('_', ' ').toUpperCase() || 'System Feed'
+  const displayLink = job.link || job.raw_url || '#'
+  const displaySummary = job.description || job.summary || "A major update has been detected in the tech landscape. Read the full analysis or view the original source for complete technical details."
+  const displayLocation = job.location || 'Remote / Global'
+  const timeAgo = getRelativeTime(job.created_at)
 
   const handleCardClick = () => {
     setIsModalOpen(true)
@@ -51,7 +64,10 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
     e.stopPropagation() 
     setIsSaving(true)
     const result = await saveJobToTracker({
-      title: job.title, company: job.company, location: job.location, link: job.link
+      title: displayTitle, 
+      company: displayCompany, 
+      location: displayLocation, 
+      link: displayLink
     })
     if (result.success) setIsSaved(true)
     setIsSaving(false)
@@ -61,7 +77,7 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
     e.stopPropagation()
     setIsAnalyzing(true)
     
-    const result = await synthesizeImpact(job.title, displaySummary)
+    const result = await synthesizeImpact(displayTitle, displaySummary)
     
     if (result.success) {
       setAiImpact(result.analysis || '')
@@ -72,12 +88,8 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
     setIsAnalyzing(false)
   }
 
-  const timeAgo = getRelativeTime(job.created_at)
-  const displaySummary = job.description || "A major update has been detected in the tech landscape regarding this topic. Read the full analysis or view the original source for complete technical details."
-
   return (
     <>
-      {/* 1. THE RADAR CARD */}
       <div 
         onClick={handleCardClick}
         className={`p-6 bg-[#0B0F19]/60 backdrop-blur-sm rounded-xl transition-all duration-300 border relative overflow-hidden group cursor-pointer ${
@@ -94,7 +106,7 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
           <div className="space-y-2 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
-                {job.title}
+                {displayTitle}
               </h3>
               {isMatch && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 animate-pulse">
@@ -104,9 +116,9 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
             </div>
 
             <div className="flex flex-wrap items-center text-sm font-medium text-slate-400 gap-x-4 gap-y-1">
-              <span className="text-slate-300 font-semibold">{job.company}</span>
+              <span className="text-slate-300 font-semibold">{displayCompany}</span>
               <span className="text-slate-500">•</span>
-              <span>{job.location}</span>
+              <span>{displayLocation}</span>
               <span className="text-slate-500">•</span>
               <span className="flex items-center text-slate-500 text-xs font-mono">
                 <Clock className="w-3 h-3 mr-1" /> {timeAgo}
@@ -137,34 +149,29 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
         </div>
       </div>
 
-      {/* 2. THE IN-APP READER MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className="bg-[#0B0F19] border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
             
-            {/* Modal Header */}
             <div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-900/50">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-slate-300 font-semibold text-sm">{job.company}</span>
+                  <span className="text-slate-300 font-semibold text-sm">{displayCompany}</span>
                   <span className="text-slate-500 text-xs font-mono flex items-center"><Clock className="w-3 h-3 mr-1"/> {timeAgo}</span>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-100 leading-tight">{job.title}</h2>
+                <h2 className="text-2xl font-bold text-slate-100 leading-tight">{displayTitle}</h2>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-100 bg-slate-800 rounded-lg transition-colors">
                 ✕
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
-              {/* Summary Section */}
               <div>
                 <h3 className="text-sm font-bold text-slate-400 mb-2 uppercase tracking-wider">Quick Summary</h3>
                 <p className="text-slate-300 leading-relaxed text-sm">{displaySummary}</p>
               </div>
 
-              {/* AI Impact Section */}
               <div className="bg-slate-900/50 border border-emerald-500/20 rounded-xl p-5 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                 
@@ -193,21 +200,18 @@ export default function JobCard({ job, isMatch = false }: JobCardProps) {
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="p-6 border-t border-slate-800 bg-slate-900/30 flex justify-between items-center gap-4">
               <button onClick={handleSave} disabled={isSaving || isSaved} className={`flex items-center transition-colors font-medium text-sm disabled:opacity-50 ${isSaved ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'}`}>
                 {isSaved ? <Check className="w-4 h-4 mr-2" /> : <BookmarkPlus className="w-4 h-4 mr-2" />}
                 {isSaved ? 'Saved' : 'Save'}
               </button>
               
-              <a 
-                href={job.link} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center bg-slate-100 hover:bg-white text-slate-900 px-5 py-2.5 rounded-lg font-bold text-sm transition-colors"
-              >
-                Read Full Original Source <ExternalLink className="w-4 h-4 ml-2" />
-              </a>
+              <AdInterceptor url={displayLink} isPremium={isPremium}>
+                <div className="flex items-center justify-center bg-slate-100 hover:bg-white text-slate-900 px-5 py-2.5 rounded-lg font-bold text-sm transition-colors cursor-pointer w-full md:w-auto">
+                  Read Full Original Source <ExternalLink className="w-4 h-4 ml-2" />
+                </div>
+              </AdInterceptor>
+              
             </div>
           </div>
         </div>
