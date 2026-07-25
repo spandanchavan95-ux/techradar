@@ -1,0 +1,21 @@
+name: Premium Automations Worker
+on:
+  schedule:
+    - cron: '0 */4 * * *' # Runs every 4 hours
+jobs:
+  run-automations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install supabase playwright groq-sdk
+      - name: Run Premium Tracker & Alert Script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python premium_worker.py
