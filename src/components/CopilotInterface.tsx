@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Send, Loader2, Copy, Check, Sparkles } from 'lucide-react'
-import { generateOutreach } from '@/app/actions/ai'
+import { generateActionPlan } from '@/app/actions/ai'
 
 export default function CopilotInterface() {
   const [jobContext, setJobContext] = useState('')
@@ -22,10 +22,12 @@ export default function CopilotInterface() {
     setDraft('')
 
     // Call the secure Server Action
-    const result = await generateOutreach(jobContext)
+    // Pass "N/A" for company and location to satisfy TypeScript's 3-argument rule
+    const result = await generateActionPlan(jobContext, "N/A", "N/A")
 
-    if (result.success && result.draft) {
-      setDraft(result.draft)
+    // The backend returns { plan }, not { draft }
+    if (result.success && result.plan) {
+      setDraft(result.plan)
     } else {
       setError(result.error || "Generation failed. Please try again.")
     }
