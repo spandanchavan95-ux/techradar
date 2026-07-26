@@ -19,7 +19,7 @@ export default function SystemPipelineUI({ aiUsageCount, isPremium }: { aiUsageC
         const end = Date.now()
         setLatency(end - start)
         setDbStatus('100%')
-      } catch (_e) {
+      } catch {
         setDbStatus('Offline')
       }
     }

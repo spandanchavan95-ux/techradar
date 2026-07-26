@@ -10,6 +10,7 @@ export default async function DashboardLayout({
   const supabase = createClient()
   
   // 1. Authenticate the User
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: { user: _user } } = await supabase.auth.getUser()
 
   return (
