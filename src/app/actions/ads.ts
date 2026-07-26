@@ -14,7 +14,7 @@ export async function checkAdEligibility() {
   const now = Date.now()
 
   // 1. Check App Initialization Time (Grace Period)
-  let appInitTime = cookieStore.get('appInitTime')?.value
+  const appInitTime = cookieStore.get('appInitTime')?.value
   if (!appInitTime) {
     // First time launching app this session
     cookieStore.set('appInitTime', now.toString(), { httpOnly: true, secure: true })
@@ -26,13 +26,13 @@ export async function checkAdEligibility() {
   }
 
   // 2. Check Session Ad Count
-  let sessionAdCount = parseInt(cookieStore.get('sessionAdCount')?.value || '0')
+  const sessionAdCount = parseInt(cookieStore.get('sessionAdCount')?.value || '0')
   if (sessionAdCount >= MAX_ADS) {
     return { showAd: false, reason: 'ad_cap_reached' }
   }
 
   // 3. Check 7-Minute Cooldown
-  let lastAdShownTime = cookieStore.get('lastAdShownTime')?.value
+  const lastAdShownTime = cookieStore.get('lastAdShownTime')?.value
   if (lastAdShownTime && (now - parseInt(lastAdShownTime) < COOLDOWN_MS)) {
     return { showAd: false, reason: 'cooldown_active' }
   }
@@ -43,7 +43,7 @@ export async function checkAdEligibility() {
 
 export async function logAdImpression() {
   const cookieStore = cookies()
-  let sessionAdCount = parseInt(cookieStore.get('sessionAdCount')?.value || '0')
+  const sessionAdCount = parseInt(cookieStore.get('sessionAdCount')?.value || '0')
   
   // Increment count and reset cooldown timer
   cookieStore.set('sessionAdCount', (sessionAdCount + 1).toString(), { httpOnly: true, secure: true })

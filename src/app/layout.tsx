@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css"; // fixed path to remove the TypeScript error 
+import "./globals.css";; // fixed path to remove the TypeScript error 
 
 const inter = Inter({ subsets: ["latin"] });
 

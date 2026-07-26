@@ -10,7 +10,7 @@ export default async function DashboardLayout({
   const supabase = createClient()
   
   // 1. Authenticate the User
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user: _user } } = await supabase.auth.getUser()
 
   return (
     <div className="min-h-screen bg-slate-950 grid grid-cols-[256px_1fr]">

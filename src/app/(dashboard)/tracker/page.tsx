@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Briefcase, AlertCircle, ExternalLink } from 'lucide-react'
 import TrackerClientUI from './TrackerClientUI' // We will build this next
 
 export default async function TrackerPage() {

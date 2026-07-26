@@ -1,5 +1,5 @@
 import JobCard from "@/components/JobCard"
-import { Terminal, Code2, Rocket, Briefcase, Sparkles, Activity, Clock, ShieldCheck } from "lucide-react"
+import { Terminal, Code2, Briefcase, Sparkles, Activity, Clock,} from "lucide-react"
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 
@@ -39,7 +39,7 @@ export default async function Home() {
   }
 
   const { data: items } = await query
-  let allItems = items || []
+  const allItems = items || []
 
   // 5. The True Radar: Flag matches against the correct schema columns
   const isTaggingActive = userTags.length > 0

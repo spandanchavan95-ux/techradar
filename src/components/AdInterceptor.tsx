@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { checkAdEligibility, logAdImpression } from '@/app/actions/ads'
-import { ExternalLink, XCircle } from 'lucide-react'
+import { ExternalLink, } from 'lucide-react'
 
 export default function AdInterceptor({ 
   url, 

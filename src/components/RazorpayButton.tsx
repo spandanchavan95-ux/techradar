@@ -30,6 +30,7 @@ export default function RazorpayButton() {
       name: 'TechRadar',
       description: 'Premium Pro Subscription (1 Month)',
       order_id: order.id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: async function (response: any) {
         // 3. Verify payment on success
         const verification = await verifyPayment(
@@ -51,6 +52,7 @@ export default function RazorpayButton() {
     }
 
     // Open Razorpay Popup
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rzp = new (window as any).Razorpay(options)
     rzp.open()
     setIsLoading(false)

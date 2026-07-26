@@ -66,6 +66,7 @@ Keep the output highly technical, concise, and format it cleanly using the bold 
     const analysis = completion.choices[0]?.message?.content || 'Analysis failed to generate.'
     await supabase.from('ai_usage_logs').insert({ user_id: user.id })
     return { success: true, analysis }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Groq Pipeline Error:", error)
     return { success: false, error: 'System failed to connect to the AI Engine.' }
@@ -143,6 +144,7 @@ ${resumeContext
     await supabase.from('ai_usage_logs').insert({ user_id: user.id })
     
     return { success: true, plan }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Groq Pipeline Error:", error)
     return { success: false, error: 'System failed to connect to the AI Engine.' }

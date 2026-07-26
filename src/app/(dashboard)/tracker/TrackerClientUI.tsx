@@ -6,6 +6,7 @@ import { saveJobToTracker, updateItemStatus } from '@/app/actions/tracker'
 import { generateActionPlan } from '@/app/actions/ai'
 import { useRouter } from 'next/navigation'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function TrackerClientUI({ initialJobs, isCapped, currentCount, limit }: any) {
   const router = useRouter()
   
@@ -46,6 +47,7 @@ export default function TrackerClientUI({ initialJobs, isCapped, currentCount, l
     router.refresh()
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleGenerateStrategy = async (job: any) => {
     setAiGeneratingId(job.id)
     
@@ -117,6 +119,7 @@ export default function TrackerClientUI({ initialJobs, isCapped, currentCount, l
             Your pipeline is empty. Save opportunities from the Live Radar.
           </div>
         ) : (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           initialJobs.map((job: any) => (
             <div key={job.id} className="bg-[#0B0F19]/60 border border-slate-800 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors hover:border-slate-700">
               
