@@ -27,9 +27,34 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not delete this! This is required for Server Components to read the correct user session
-  // and for updating/refreshing the session properly when needed.
-  await supabase.auth.getUser()
+  // Fetch the user
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // SECURITY GUARD:
+  // If there is no user, and they are trying to access ANY route EXCEPT 
+  // the public landing page (/), the login page (/login), or legal pages
+  if (
+    !user &&
+    request.nextUrl.pathname !== '/' &&
+    request.nextUrl.pathname !== '/login' &&
+    request.nextUrl.pathname !== '/terms' &&
+    request.nextUrl.pathname !== '/privacy' &&
+    request.nextUrl.pathname !== '/contact' &&
+    !request.nextUrl.pathname.startsWith('/auth') // Allow auth callbacks to process
+  ) {
+    // Kick them to the login page
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // If there IS a user, and they try to go to the login page or landing page, 
+  // route them directly into the app so they don't have to log in again.
+  if (user && (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/login')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard' // Assuming your main app is at /dashboard
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }

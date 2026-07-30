@@ -12,7 +12,9 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install dependencies
-        run: pip install supabase playwright groq-sdk
+        run: |
+          pip install supabase playwright groq
+          python -m playwright install --with-deps
       - name: Run Premium Tracker & Alert Script
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
