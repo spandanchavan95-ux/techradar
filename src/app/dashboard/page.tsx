@@ -2,6 +2,7 @@ import JobCard from "@/components/JobCard"
 import { Terminal, Code2, Briefcase, Sparkles, Activity, Clock,} from "lucide-react"
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
+import CheckoutButton from "./CheckoutButton"
 
 export default async function Home() {
   const supabase = createClient()
@@ -87,6 +88,19 @@ export default async function Home() {
           </div>
         </div>
 
+        {/* Premium Upgrade Banner for Free Users */}
+        {!isPremium && (
+          <div className="bg-gradient-to-r from-emerald-900/20 to-slate-900/80 border border-emerald-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+            <div className="mb-4 md:mb-0 text-center md:text-left">
+              <h3 className="text-xl font-bold text-slate-100 mb-1">Unlock Real-Time Data</h3>
+              <p className="text-sm text-slate-400 max-w-md">You are currently experiencing the standard 6-hour delay. Upgrade to Premium Pro to instantly access live roles and AI outreach tools.</p>
+            </div>
+            <div className="shrink-0">
+              <CheckoutButton />
+            </div>
+          </div>
+        )}
+
         {/* Live Data Feed */}
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-6 mt-4">
@@ -115,7 +129,6 @@ export default async function Home() {
             </div>
           ) : (
             enrichedItems.map((item) => (
-              // Crucial: We pass isPremium here so the JobCard knows to bypass ads!
               <JobCard key={item.id} job={item} isMatch={item.isMatch} isPremium={isPremium} />
             ))
           )}

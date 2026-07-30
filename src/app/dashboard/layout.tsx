@@ -21,7 +21,7 @@ export default async function DashboardLayout({
         
         {/* App Branding */}
         <div className="p-6 border-b border-slate-800">
-          <Link href="/" className="flex items-center text-xl font-bold text-slate-100 hover:opacity-80 transition-opacity">
+          <Link href="/dashboard" className="flex items-center text-xl font-bold text-slate-100 hover:opacity-80 transition-opacity">
             <Radar className="w-6 h-6 text-emerald-500 mr-2" />
             TechRadar
           </Link>
@@ -30,7 +30,7 @@ export default async function DashboardLayout({
         {/* Navigation Links */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <Link 
-            href="/" 
+            href="/dashboard" 
             className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
           >
             <Radar className="w-5 h-5 mr-3" />
@@ -38,14 +38,14 @@ export default async function DashboardLayout({
           </Link>
           
           <Link 
-            href="/tracker" 
+            href="/dashboard/tracker" 
             className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
           >
             <Briefcase className="w-5 h-5 mr-3" />
             Opportunity Tracker
           </Link>
           <Link 
-            href="/settings" 
+            href="/dashboard/settings" 
             className="flex items-center px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-slate-900/50 rounded-lg transition-all"
           >
             <Settings className="w-5 h-5 mr-3" />
@@ -56,7 +56,7 @@ export default async function DashboardLayout({
         {/* Premium Hub CTA */}
         <div className="p-4 border-t border-slate-800">
           <Link 
-            href="/premium" 
+            href="/dashboard/premium" 
             className="flex items-center justify-center w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition-colors shadow-lg shadow-emerald-900/20"
           >
             <Zap className="w-5 h-5 mr-2" />
