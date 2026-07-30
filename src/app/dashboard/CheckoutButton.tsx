@@ -28,13 +28,13 @@ export default function CheckoutButton() {
 
     // 2. Configure the payment pop-up
     const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Your public test key
-      amount: "5000", // Razorpay calculates in paise (5000 paise = ₹50)
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+      amount: "5000", 
       currency: "INR",
       name: "TechRadar Premium Pro",
       description: "Monthly Automation Power",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: function (response: any) {
-        // This runs when the test payment succeeds
         alert("Test Payment Successful! Payment ID: " + response.razorpay_payment_id)
         setLoading(false)
       },
@@ -43,14 +43,16 @@ export default function CheckoutButton() {
         email: "reviewer@techradar.com",
       },
       theme: {
-        color: "#10B981" // TechRadar Emerald Green
+        color: "#10B981" 
       }
     }
 
     // 3. Open the modal
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paymentObject = new (window as any).Razorpay(options)
     paymentObject.open()
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     paymentObject.on('payment.failed', function (response: any) {
       alert("Payment Failed: " + response.error.description)
       setLoading(false)
