@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ExternalLink, BookmarkPlus, Sparkles, Loader2, Check, Clock, ChevronRight, Zap } from 'lucide-react'
 import { saveJobToTracker } from '@/app/actions/tracker'
 import { synthesizeImpact } from '@/app/actions/ai'
@@ -27,6 +27,7 @@ interface JobCardProps {
   isPremium?: boolean
 }
 
+// Time calculator
 function getRelativeTime(dateString?: string) {
   if (!dateString) return 'Just now'
   const date = new Date(dateString)
@@ -48,13 +49,28 @@ export default function JobCard({ job, isMatch = false, isPremium = false }: Job
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [aiImpact, setAiImpact] = useState('')
 
-  // 2. Safely map the variables, falling back to the scraper's data structure
+  // NEW: Secure Client-Side Time State
+  const [timeAgo, setTimeAgo] = useState<string>('Syncing time...')
+
+  // NEW: Force time calculation into the local browser timezone & make it tick live
+  useEffect(() => {
+    // Run initial calculation
+    setTimeAgo(getRelativeTime(job.created_at))
+    
+    // Set a live interval to refresh the time every 60 seconds
+    const timer = setInterval(() => {
+      setTimeAgo(getRelativeTime(job.created_at))
+    }, 60000)
+    
+    return () => clearInterval(timer)
+  }, [job.created_at])
+
+  // Safely map the variables
   const displayTitle = job.title || job.headline || 'Incoming Radar Alert'
   const displayCompany = job.company || job.source_platform?.replace('_', ' ').toUpperCase() || 'System Feed'
   const displayLink = job.link || job.raw_url || '#'
   const displaySummary = job.description || job.summary || "A major update has been detected in the tech landscape. Read the full analysis or view the original source for complete technical details."
   const displayLocation = job.location || 'Remote / Global'
-  const timeAgo = getRelativeTime(job.created_at)
 
   const handleCardClick = () => {
     setIsModalOpen(true)
