@@ -42,7 +42,7 @@ export default function CheckoutButton() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: "5000", 
         currency: "INR",
-        name: "TechRadar Premium Pro",
+        name: "Techpulse Premium Pro",
         description: "Monthly Automation Power",
         order_id: orderData.orderId, // Crucial: Links the UI to your backend order
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,7 +72,7 @@ export default function CheckoutButton() {
         },
         prefill: {
           name: "Razorpay Reviewer",
-          email: "reviewer@techradar.com",
+          email: "reviewer@techpulse.com",
         },
         theme: {
           color: "#10B981" 

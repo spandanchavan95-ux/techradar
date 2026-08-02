@@ -17,7 +17,7 @@ export default function ContactPage() {
               <Mail className="w-6 h-6 text-emerald-500" />
               <div>
                 <h3 className="text-slate-100 font-bold text-base">Email Support</h3>
-                <a href="mailto:support@techradar.com" className="text-emerald-400 hover:underline">support@techradar.com</a>
+                <a href="mailto:support@techpulse.com" className="text-emerald-400 hover:underline">support@techpulse.com</a>
               </div>
             </div>
             
@@ -25,7 +25,7 @@ export default function ContactPage() {
               <MapPin className="w-6 h-6 text-emerald-500" />
               <div>
                 <h3 className="text-slate-100 font-bold text-base">Registered Address</h3>
-                <p className="text-slate-400">TechRadar Inc.<br/>[Insert Your Street Address Here]<br/>[Insert Your City/State/Zip Here]</p>
+                <p className="text-slate-400">Techpulse Inc.<br/>[Insert Your Street Address Here]<br/>[Insert Your City/State/Zip Here]</p>
               </div>
             </div>
           </div>

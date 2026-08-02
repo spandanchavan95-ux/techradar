@@ -14,14 +14,15 @@ export const viewport: Viewport = {
 
 // 2. Combined Metadata (Your SEO + PWA App config)
 export const metadata: Metadata = {
-  title: "TechRadar | Opportunity Engine",
+  title: "Techpulse | Opportunity Engine",
   description: "Real-time discovery engine for early-career developers.",
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.json', 
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'TechRadar',
+    title: 'Techpulse',
   },
+  themeColor: "#10B981", 
 };
 
 export default function RootLayout({

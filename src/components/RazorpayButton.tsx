@@ -27,7 +27,7 @@ export default function RazorpayButton() {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Ensure you add NEXT_PUBLIC_RAZORPAY_KEY_ID to .env.local too
       amount: order.amount,
       currency: order.currency,
-      name: 'TechRadar',
+      name: 'Techpulse',
       description: 'Premium Pro Subscription (1 Month)',
       order_id: order.id,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

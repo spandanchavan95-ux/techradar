@@ -14,9 +14,9 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold text-slate-200 mt-6">1. Data Collection</h2>
           <p>We collect your email address and profile information via Google OAuth strictly for authentication purposes. We securely store the career opportunities and notes you manually or automatically log within our Supabase database infrastructure.</p>
           <h2 className="text-xl font-semibold text-slate-200 mt-6">2. Data Usage</h2>
-          <p>Your data is used solely to provide the TechRadar service, including generating AI outreach drafts. We do not sell your personal data or career tracking history to third-party data brokers.</p>
+          <p>Your data is used solely to provide the Techpulse service, including generating AI outreach drafts. We do not sell your personal data or career tracking history to third-party data brokers.</p>
           <h2 className="text-xl font-semibold text-slate-200 mt-6">3. Payment Information</h2>
-          <p>All payment processing is handled securely by Razorpay. TechRadar does not store your credit card numbers or raw financial data on our servers at any time.</p>
+          <p>All payment processing is handled securely by Razorpay. Techpulse does not store your credit card numbers or raw financial data on our servers at any time.</p>
         </div>
         <div className="mt-12 pt-6 border-t border-slate-800 text-center">
           <Link href="/" className="text-emerald-500 hover:text-emerald-400 font-medium">← Return to Home</Link>

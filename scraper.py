@@ -161,7 +161,7 @@ def push_to_supabase(data_payload):
 # MAIN WORKFLOW EXECUTION
 # ==========================================
 async def run_data_pipeline():
-    print(f"Starting TechRadar Pipeline: {datetime.now().isoformat()}")
+    print(f"Starting Techpulse Pipeline: {datetime.now().isoformat()}")
     
     hn_data = fetch_hacker_news()
     lobsters_data = fetch_lobsters()

@@ -12,11 +12,11 @@ export default function TermsPage() {
         <div className="space-y-6 text-sm leading-relaxed">
           <p><strong>Last Updated:</strong> July 2026</p>
           <h2 className="text-xl font-semibold text-slate-200 mt-6">1. Acceptance of Terms</h2>
-          <p>By accessing and using TechRadar, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.</p>
+          <p>By accessing and using Techpulse, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.</p>
           <h2 className="text-xl font-semibold text-slate-200 mt-6">2. Subscription and Payments</h2>
-          <p>TechRadar Premium Pro is billed at ₹50 per month. Payments are processed securely via Razorpay. Subscriptions automatically renew unless canceled before the billing cycle ends. Refunds are handled on a case-by-case basis per our strict refund policy.</p>
+          <p>Techpulse Premium Pro is billed at ₹50 per month. Payments are processed securely via Razorpay. Subscriptions automatically renew unless canceled before the billing cycle ends. Refunds are handled on a case-by-case basis per our strict refund policy.</p>
           <h2 className="text-xl font-semibold text-slate-200 mt-6">3. User Responsibilities</h2>
-          <p>You are responsible for maintaining the security of your Google OAuth login and any data you track within the TechRadar application. We reserve the right to terminate accounts that violate our usage policies.</p>
+          <p>You are responsible for maintaining the security of your Google OAuth login and any data you track within the Techpulse application. We reserve the right to terminate accounts that violate our usage policies.</p>
         </div>
         <div className="mt-12 pt-6 border-t border-slate-800 text-center">
           <Link href="/" className="text-emerald-500 hover:text-emerald-400 font-medium">← Return to Home</Link>

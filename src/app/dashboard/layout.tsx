@@ -23,7 +23,7 @@ export default async function DashboardLayout({
         <div className="p-6 border-b border-slate-800">
           <Link href="/dashboard" className="flex items-center text-xl font-bold text-slate-100 hover:opacity-80 transition-opacity">
             <Radar className="w-6 h-6 text-emerald-500 mr-2" />
-            TechRadar
+            Techpulse
           </Link>
         </div>
 

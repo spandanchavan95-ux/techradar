@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'TechRadar',
-    short_name: 'TechRadar',
+    name: 'Techpulse',
+    short_name: 'Techpulse',
     description: 'High-density daily tech engine for startups, careers, and launches.',
     start_url: '/',
     display: 'standalone',

@@ -34,7 +34,7 @@ export default function LoginPage({
         
         <div className="flex flex-col items-center justify-center text-center space-y-2 mb-4">
           <Radar className="w-10 h-10 text-emerald-500 mb-2" />
-          <h1 className="text-2xl font-bold text-slate-100">Welcome to TechRadar</h1>
+          <h1 className="text-2xl font-bold text-slate-100">Welcome to Techpulse</h1>
           <p className="text-sm text-slate-400">Sign in to track your opportunities.</p>
         </div>
 

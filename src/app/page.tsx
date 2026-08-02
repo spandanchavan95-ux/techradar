@@ -8,7 +8,7 @@ export default function LandingPage() {
       <header className="w-full py-6 px-8 border-b border-slate-800 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Radar className="w-8 h-8 text-emerald-500" />
-          <span className="text-xl font-bold tracking-tight">TechRadar</span>
+          <span className="text-xl font-bold tracking-tight">Techpulse</span>
         </div>
         <Link 
           href="/login" 
@@ -24,7 +24,7 @@ export default function LandingPage() {
           Automate your career <span className="text-emerald-500">pipeline.</span>
         </h1>
         <p className="text-lg text-slate-400 max-w-2xl mb-10">
-          Stop tracking jobs in spreadsheets. TechRadar uses AI to track your target roles, alert you to market shifts, and draft hyper-targeted outreach in seconds.
+          Stop tracking jobs in spreadsheets. Techpulse uses AI to track your target roles, alert you to market shifts, and draft hyper-targeted outreach in seconds.
         </p>
         <Link 
           href="/login" 
@@ -78,11 +78,11 @@ export default function LandingPage() {
       {/* Compliance Footer (Razorpay Requirement) */}
       <footer className="w-full py-8 border-t border-slate-800 mt-auto">
         <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-          <div>© 2026 TechRadar. All rights reserved.</div>
+          <div>© 2026 Techpulse. All rights reserved.</div>
           <div className="flex gap-6">
             <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
             <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
-            <a href="mailto:support@techradar.com" className="hover:text-slate-300 transition-colors">Contact Us</a>
+            <a href="mailto:support@techpulse.com" className="hover:text-slate-300 transition-colors">Contact Us</a>
           </div>
         </div>
       </footer>
