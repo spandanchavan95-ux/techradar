@@ -3,16 +3,27 @@
 import { useState, useEffect } from 'react'
 import { Download } from 'lucide-react'
 
+// 1. We strictly define the browser event interface to eliminate the 'any' type
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export default function InstallPWA() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  // 2. We explicitly tell TypeScript what kind of data this state will hold
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstallable, setIsInstallable] = useState(false)
 
   useEffect(() => {
-    // Listen for the browser's native install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e)
-      setIsInstallable(true) // Only show our button if the app is actually installable
+      // 3. We cast the generic Event to our strict interface
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
+      setIsInstallable(true) 
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -23,18 +34,15 @@ export default function InstallPWA() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return
     
-    // Trigger the native browser install modal
     deferredPrompt.prompt()
     
-    // Wait for the user to respond
     const { outcome } = await deferredPrompt.userChoice
     if (outcome === 'accepted') {
-      setIsInstallable(false) // Hide button after successful install
+      setIsInstallable(false) 
     }
     setDeferredPrompt(null)
   }
 
-  // If the app is already installed, or not supported, render nothing
   if (!isInstallable) return null
 
   return (
