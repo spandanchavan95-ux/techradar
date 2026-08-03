@@ -1,3 +1,4 @@
+import InstallPWA from '@/components/InstallPWA'
 import JobCard from "@/components/JobCard"
 import { Terminal, Code2, Briefcase, Sparkles, Activity, Clock,} from "lucide-react"
 import { createClient } from "@/utils/supabase/server"
@@ -64,6 +65,11 @@ export default async function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center p-4 md:p-10 animate-in fade-in">
       <div className="max-w-4xl w-full space-y-8">
+        
+        {/* --- PWA INSTALL BUTTON INJECTED HERE --- */}
+        <div className="w-full flex justify-end">
+           <InstallPWA />
+        </div>
         
         {/* Status Panel */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-sm">

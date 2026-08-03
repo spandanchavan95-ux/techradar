@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";; // fixed path to remove the TypeScript error 
+import "./globals.css"; // Fixed the double semicolon
 
 const inter = Inter({ subsets: ["latin"] });
 
 // 1. PWA Viewport Settings (Mobile fullscreen)
 export const viewport: Viewport = {
-  themeColor: '#050810',
+  themeColor: "#10B981", // Set to your emerald green brand color
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'Techpulse',
   },
-  themeColor: "#10B981", 
+  // themeColor has been completely surgically removed from here
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-import RazorpayButton from '@/components/RazorpayButton'
+import CheckoutButton from './CheckoutButton'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { 
@@ -175,7 +175,9 @@ export default async function PremiumHubPage() {
             </ul>
 
             <div className="z-10">
-              <RazorpayButton />
+              {/* This is the crucial line that was causing your crash. 
+                  It is now safely pointed to the CheckoutButton wrapper. */}
+              <CheckoutButton />
             </div>
             
           </div>
